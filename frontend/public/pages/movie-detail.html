@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết phim - Streaming Platform</title>
+    <link rel="stylesheet" href="../css/movie-detail.css?v=7">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CGV Core System -->
+    <script src="../js/core.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-film"></i>
+                STREAMFLIX
+            </a>
+            
+            <div class="nav-links">
+                <a href="/streaming.html">Trang chủ</a>
+                <a href="/browse.html">Khám phá</a>
+                <a href="#" class="active">Chi tiết</a>
+            </div>
+
+            <div class="nav-right">
+                <button class="btn-search" onclick="toggleSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <div class="user-menu">
+                    <img src="https://ui-avatars.com/api/?name=User&background=e50914&color=fff" alt="User" class="user-avatar">
+                    <div class="dropdown">
+                        <a href="/profile.html"><i class="fas fa-user"></i> Profile</a>
+                        <a href="/profile.html#subscription"><i class="fas fa-crown"></i> Subscription</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Movie Hero Section -->
+    <section class="movie-hero" id="movieHero">
+        <div class="hero-backdrop"></div>
+        <div class="hero-content">
+            <div class="movie-poster">
+                <img src="" alt="Movie Poster" id="moviePoster">
+                <button class="btn-favorite" id="btnFavorite" onclick="toggleFavorite()">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            <div class="movie-info">
+                <h1 class="movie-title" id="movieTitle">Loading...</h1>
+                <p class="movie-original" id="movieOriginal"></p>
+                
+                <div class="movie-meta">
+                    <span class="rating">
+                        <i class="fas fa-star"></i>
+                        <span id="movieRating">0.0</span>
+                    </span>
+                    <span class="year" id="movieYear">2024</span>
+                    <span class="duration" id="movieDuration">120 phút</span>
+                    <span class="quality" id="movieQuality">HD</span>
+                    <span class="badge-premium" id="premiumBadge" style="display: none;">
+                        <i class="fas fa-crown"></i> Premium
+                    </span>
+                </div>
+
+                <p class="movie-description" id="movieDescription">
+                    Loading description...
+                </p>
+
+                <div class="movie-details-grid">
+                    <div class="detail-item">
+                        <span class="label">Đạo diễn:</span>
+                        <span class="value" id="movieDirector">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Diễn viên:</span>
+                        <span class="value" id="movieCast">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Thể loại:</span>
+                        <span class="value" id="movieGenres">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Quốc gia:</span>
+                        <span class="value" id="movieCountry">-</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-play" onclick="playMovie()">
+                        <i class="fas fa-play"></i>
+                        Xem ngay
+                    </button>
+                    <button class="btn btn-trailer" onclick="playTrailer()">
+                        <i class="fas fa-video"></i>
+                        Trailer
+                    </button>
+                    <button class="btn-icon" onclick="toggleFavorite()" title="Thêm vào danh sách">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                    <button class="btn-icon" onclick="shareMovie()" title="Chia sẻ">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="tabs-section">
+        <div class="container">
+            <div class="tabs">
+                <button class="tab active" data-tab="overview" onclick="switchTab('overview')">
+                    Tổng quan
+                </button>
+                <button class="tab" data-tab="reviews" onclick="switchTab('reviews')">
+                    Đánh giá (<span id="reviewCount">0</span>)
+                </button>
+                <button class="tab" data-tab="comments" onclick="switchTab('comments')">
+                    Bình luận (<span id="commentCount">0</span>)
+                </button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div class="tab-content active" id="overviewTab">
+                <!-- Episodes Section (for TV series) -->
+                <div class="episodes-section" id="episodesSection" style="display: none;">
+                    <h2>Danh sách tập phim</h2>
+                    <div class="episodes-grid" id="episodesGrid">
+                        <!-- Episodes will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="cast-section">
+                    <h2>Diễn viên & Đoàn phim</h2>
+                    <div class="cast-grid" id="castGrid">
+                        <!-- Cast members will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="related-movies">
+                    <h2>Phim liên quan</h2>
+                    <div class="movies-grid" id="relatedMovies">
+                        <!-- Related movies will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div class="tab-content" id="reviewsTab">
+                <div class="reviews-header">
+                    <h2>Đánh giá từ khán giả</h2>
+                    <button class="btn btn-primary" onclick="openReviewModal()">
+                        <i class="fas fa-star"></i>
+                        Viết đánh giá
+                    </button>
+                </div>
+
+                <div class="rating-summary">
+                    <div class="rating-score">
+                        <span class="score" id="avgRating">0.0</span>
+                        <div class="stars" id="avgStars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="count" id="ratingCount">0 đánh giá</span>
+                    </div>
+                    <div class="rating-bars">
+                        <div class="rating-bar">
+                            <span>5 <i class="fas fa-star"></i></span>
+                            <div class="bar"><div class="fill" id="bar5" style="width: 0%"></div></div>
+                            <span class="percent" id="percent5">0%</span>
+                        </div>
+                        <div class="rating-bar">
+                            <span>4 <i class="fas fa-star"></i></span>
+                            <div class="bar"><div class="fill" id="bar4" style="width: 0%"></div></div>
+                            <span class="percent" id="percent4">0%</span>
+                        </div>
+                        <div class="rating-bar">
+                            <span>3 <i class="fas fa-star"></i></span>
+                            <div class="bar"><div class="fill" id="bar3" style="width: 0%"></div></div>
+                            <span class="percent" id="percent3">0%</span>
+                        </div>
+                        <div class="rating-bar">
+                            <span>2 <i class="fas fa-star"></i></span>
+                            <div class="bar"><div class="fill" id="bar2" style="width: 0%"></div></div>
+                            <span class="percent" id="percent2">0%</span>
+                        </div>
+                        <div class="rating-bar">
+                            <span>1 <i class="fas fa-star"></i></span>
+                            <div class="bar"><div class="fill" id="bar1" style="width: 0%"></div></div>
+                            <span class="percent" id="percent1">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reviews-list" id="reviewsList">
+                    <!-- Reviews will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Comments Tab -->
+            <div class="tab-content" id="commentsTab">
+                <div class="comment-form">
+                    <h3>Viết bình luận</h3>
+                    <textarea id="commentText" placeholder="Chia sẻ suy nghĩ của bạn về bộ phim..." rows="4"></textarea>
+                    <button class="btn btn-primary" onclick="postComment()">
+                        <i class="fas fa-paper-plane"></i>
+                        Gửi bình luận
+                    </button>
+                </div>
+
+                <div class="comments-list" id="commentsList">
+                    <!-- Comments will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Review Modal -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Đánh giá phim</h2>
+                <button class="btn-close" onclick="closeReviewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="rating-input">
+                    <label>Điểm của bạn:</label>
+                    <div class="stars-input" id="starsInput">
+                        <i class="far fa-star" data-rating="1"></i>
+                        <i class="far fa-star" data-rating="2"></i>
+                        <i class="far fa-star" data-rating="3"></i>
+                        <i class="far fa-star" data-rating="4"></i>
+                        <i class="far fa-star" data-rating="5"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nhận xét của bạn:</label>
+                    <textarea id="reviewText" placeholder="Viết nhận xét về bộ phim..." rows="6"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReviewModal()">Hủy</button>
+                <button class="btn btn-primary" onclick="submitReview()">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trailer Modal -->
+    <div class="modal" id="trailerModal">
+        <div class="modal-content modal-video">
+            <button class="btn-close" onclick="closeTrailerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="video-container">
+                <iframe id="trailerFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div id="searchModal" class="search-modal">
+        <div class="search-modal-content">
+            <button class="search-close" onclick="closeSearch()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Tìm kiếm phim, diễn viên, đạo diễn..." autocomplete="off">
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <script src="../js/movie-detail.js?v=7"></script>
+</body>
+</html>

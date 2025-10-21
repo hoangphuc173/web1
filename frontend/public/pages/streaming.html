@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGV Streaming - Xem phim online miễn phí</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/streaming.css?v=45">
+    <!-- CGV Core System -->
+    <script src="../js/core.js?v=100"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo">
+                    <i class="fas fa-film"></i>
+                    <span>CGV</span> Streaming
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm phim, diễn viên..." autocomplete="off">
+                    <i class="fas fa-search"></i>
+                    <div class="search-suggestions" id="searchSuggestions"></div>
+                </div>
+                <button class="btn-refresh" onclick="manualRefresh()" title="Làm mới dữ liệu">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="user-menu" id="userMenu">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userName">Đăng nhập</span>
+                    <div class="dropdown">
+                        <a href="#" onclick="showProfile()"><i class="fas fa-user"></i> Tài khoản</a>
+                        <a href="#" onclick="showSubscription()"><i class="fas fa-crown"></i> Nâng cấp VIP</a>
+                        <a href="#" onclick="showSettings()"><i class="fas fa-cog"></i> Cài đặt</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Carousel - Full Screen -->
+    <section class="hero-carousel" id="heroCarousel">
+        <div class="carousel-container">
+            <!-- Slides will be dynamically added here -->
+        </div>
+        
+        <!-- Carousel Controls -->
+        <button class="carousel-control prev" id="carouselPrev">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="carousel-control next" id="carouselNext">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Carousel Indicators -->
+        <div class="carousel-indicators" id="carouselIndicators">
+            <!-- Dots will be dynamically added here -->
+        </div>
+    </section>
+
+    <!-- Movie Rows -->
+    <main class="content">
+        <!-- Main Content Area -->
+        <div class="main-content full-width">
+
+        <!-- Search Results (Hidden by default) -->
+        <section class="movie-row" id="searchResultsSection" style="display:none;">
+            <div class="row-header">
+                <h2>🔍 Kết quả tìm kiếm</h2>
+            </div>
+            <div class="movie-carousel" id="searchResults">
+                <!-- Search results will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Trending This Week -->
+        <section class="movie-row" id="trendingSection">
+            <div class="row-header">
+                <h2>🔥 Trending tuần này</h2>
+                <a href="browse.html?filter=trending" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="trendingMovies">
+                <!-- Trending movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- New Releases / Latest Updates -->
+        <section class="movie-row" id="newReleasesSection">
+            <div class="row-header">
+                <h2>🆕 Phim mới cập nhật</h2>
+                <a href="browse.html?sort=created_at" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="newReleases">
+                <!-- New releases will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Recommended For You -->
+        <section class="movie-row" id="recommendedSection" style="display:none;">
+            <div class="row-header">
+                <h2>💡 Đề xuất cho bạn</h2>
+                <a href="browse.html?filter=recommended" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="recommendedMovies">
+                <!-- Recommended movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Top Rated -->
+        <section class="movie-row" id="topRatedSection">
+            <div class="row-header">
+                <h2>⭐ Xếp hạng cao</h2>
+                <a href="browse.html?sort=rating" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="topRatedMovies">
+                <!-- Top rated movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Movies / Single Films -->
+        <section class="movie-row" id="moviesSection">
+            <div class="row-header">
+                <h2>🎬 Phim lẻ</h2>
+                <a href="browse.html?type=movie" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="movies">
+                <!-- Movies (single films) will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Series / TV Shows -->
+        <section class="movie-row" id="seriesSection">
+            <div class="row-header">
+                <h2>📺 Phim bộ</h2>
+                <a href="browse.html?type=series" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="series">
+                <!-- Series (TV shows) will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Action Movies -->
+        <section class="movie-row" id="actionSection">
+            <div class="row-header">
+                <h2>💥 Phim hành động</h2>
+                <a href="browse.html?genre=hanh-dong" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="actionMovies">
+                <!-- Action movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Comedy Movies -->
+        <section class="movie-row" id="comedySection">
+            <div class="row-header">
+                <h2>😂 Phim hài hước</h2>
+                <a href="browse.html?genre=hai-huoc" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="comedyMovies">
+                <!-- Comedy movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Drama Movies -->
+        <section class="movie-row" id="dramaSection">
+            <div class="row-header">
+                <h2>🎭 Phim tâm lý</h2>
+                <a href="browse.html?genre=tam-ly" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="dramaMovies">
+                <!-- Drama movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Horror Movies -->
+        <section class="movie-row" id="horrorSection">
+            <div class="row-header">
+                <h2>👻 Phim kinh dị</h2>
+                <a href="browse.html?genre=kinh-di" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="horrorMovies">
+                <!-- Horror movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Romance Movies -->
+        <section class="movie-row" id="romanceSection">
+            <div class="row-header">
+                <h2>💕 Phim tình cảm</h2>
+                <a href="browse.html?genre=tinh-cam" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="romanceMovies">
+                <!-- Romance movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Crime Movies (Tội phạm) -->
+        <section class="movie-row" id="crimeSection">
+            <div class="row-header">
+                <h2>🕵️ Phim hình sự</h2>
+                <a href="browse.html?genre=hinh-su" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="crimeMovies">
+                <!-- Crime movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Sci-Fi Movies -->
+        <section class="movie-row" id="scifiSection">
+            <div class="row-header">
+                <h2>🚀 Phim viễn tưởng</h2>
+                <a href="browse.html?genre=vien-tuong" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="scifiMovies">
+                <!-- Sci-Fi movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Fantasy Movies -->
+        <section class="movie-row" id="fantasySection">
+            <div class="row-header">
+                <h2>🧙 Phim thần thoại</h2>
+                <a href="browse.html?genre=than-thoai" class="see-all">
+                    Xem tất cả <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="movie-carousel" id="fantasyMovies">
+                <!-- Fantasy movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- My List (Before Genres) -->
+        <section class="movie-row" id="myListSectionBottom" style="display:none;">
+            <div class="row-header">
+                <h2>❤️ Danh sách yêu thích</h2>
+            </div>
+            <div class="movie-carousel" id="myListBottom">
+                <!-- Favorite movies will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Watch History (Before Genres) -->
+        <section class="movie-row" id="watchHistorySection" style="display:none;">
+            <div class="row-header">
+                <h2>🕒 Lịch sử xem</h2>
+                <a href="#" class="see-all" onclick="clearAllWatchHistory(); return false;">
+                    <i class="fas fa-trash-alt"></i> Xóa lịch sử
+                </a>
+            </div>
+            <div class="movie-carousel" id="watchHistory">
+                <!-- Watch history will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Genres -->
+        <section class="genres-section" id="genres">
+            <h2>Thể loại</h2>
+            <div class="genres-grid" id="genresGrid">
+                <!-- Genres will be loaded here -->
+            </div>
+        </section>
+        </div> <!-- End of main-content -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CGV Streaming</h3>
+                <p>Nền tảng xem phim online hàng đầu Việt Nam</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Dịch vụ</h4>
+                <ul>
+                    <li><a href="#">Gói VIP</a></li>
+                    <li><a href="#">Gói Premium</a></li>
+                    <li><a href="#">Gift Card</a></li>
+                    <li><a href="#">Trung tâm trợ giúp</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Chính sách</h4>
+                <ul>
+                    <li><a href="#">Điều khoản sử dụng</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
+                    <li><a href="#">Bản quyền</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Ứng dụng</h4>
+                <ul>
+                    <li><a href="#"><i class="fab fa-apple"></i> iOS App</a></li>
+                    <li><a href="#"><i class="fab fa-android"></i> Android App</a></li>
+                    <li><a href="#"><i class="fab fa-windows"></i> Windows App</a></li>
+                    <li><a href="#"><i class="fas fa-tv"></i> Smart TV</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 CGV Streaming. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/streaming.js?v=1008"></script>
+</body>
+</html>

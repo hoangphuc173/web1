@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài khoản - CGV Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e50914;
+        }
+
+        .logo span {
+            color: #fff;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e50914, #ff6b6b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #fff;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-details h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e50914;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .profile-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-card h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e50914;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e50914, #ff6b6b);
+            border: none;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-film"></i>
+            <span>CGV</span> Streaming
+        </div>
+        <button class="back-btn" onclick="window.location.href='streaming.html'">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-info">
+                <div class="avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-badge"><i class="fas fa-crown"></i> VIP Member</span>
+                    <h2 id="userName">Admin User</h2>
+                    <p id="userEmail" style="color: rgba(255, 255, 255, 0.7);">admin@example.com</p>
+                    <div class="user-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="moviesWatched">0</div>
+                            <div class="stat-label">Phim đã xem</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="favorites">0</div>
+                            <div class="stat-label">Yêu thích</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="watchTime">0h</div>
+                            <div class="stat-label">Thời gian xem</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Sections -->
+        <div class="profile-sections">
+            <!-- Account Info -->
+            <div class="section-card">
+                <h3><i class="fas fa-user-circle"></i> Thông tin tài khoản</h3>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value" id="infoEmail">admin@example.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tên người dùng</span>
+                    <span class="info-value" id="infoUsername">Admin User</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày tham gia</span>
+                    <span class="info-value" id="joinDate">01/01/2024</span>
+                </div>
+                <button class="btn btn-secondary" onclick="editProfile()">
+                    <i class="fas fa-edit"></i> Chỉnh sửa thông tin
+                </button>
+            </div>
+
+            <!-- Subscription Info -->
+            <div class="section-card">
+                <h3><i class="fas fa-crown"></i> Gói thành viên</h3>
+                <div class="info-row">
+                    <span class="info-label">Loại gói</span>
+                    <span class="info-value">VIP Premium</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Trạng thái</span>
+                    <span class="info-value" style="color: #4CAF50;">Đang hoạt động</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Hết hạn</span>
+                    <span class="info-value" id="expiryDate">31/12/2025</span>
+                </div>
+                <button class="btn" onclick="window.location.href='subscription.html'">
+                    <i class="fas fa-crown"></i> Nâng cấp gói
+                </button>
+            </div>
+
+            <!-- Security -->
+            <div class="section-card">
+                <h3><i class="fas fa-shield-alt"></i> Bảo mật</h3>
+                <div class="info-row">
+                    <span class="info-label">Mật khẩu</span>
+                    <span class="info-value">••••••••</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Xác thực 2 lớp</span>
+                    <span class="info-value" style="color: #ff9800;">Chưa kích hoạt</span>
+                </div>
+                <button class="btn btn-secondary" onclick="changePassword()">
+                    <i class="fas fa-key"></i> Đổi mật khẩu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FLASK_API = 'http://localhost:5000';
+        let currentUser = null;
+
+        async function loadUserProfile() {
+            try {
+                // Check authentication
+                const response = await fetch(`${FLASK_API}/api/check-auth`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                currentUser = data.user;
+                document.getElementById('userName').textContent = data.user.username || 'User';
+                document.getElementById('userEmail').textContent = data.user.email || 'N/A';
+                document.getElementById('infoEmail').textContent = data.user.email || 'N/A';
+                document.getElementById('infoUsername').textContent = data.user.username || 'User';
+
+                // Load watch history count
+                const historyResponse = await fetch(`${FLASK_API}/api/watch-history`, {
+                    credentials: 'include'
+                });
+                if (historyResponse.ok) {
+                    const historyData = await historyResponse.json();
+                    document.getElementById('moviesWatched').textContent = historyData.history?.length || 0;
+                }
+
+                // Load favorites count
+                const favResponse = await fetch(`${FLASK_API}/api/favorites`, {
+                    credentials: 'include'
+                });
+                if (favResponse.ok) {
+                    const favData = await favResponse.json();
+                    document.getElementById('favorites').textContent = favData.favorites?.length || 0;
+                }
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        function editProfile() {
+            alert('Chức năng chỉnh sửa thông tin đang phát triển');
+        }
+
+        function changePassword() {
+            alert('Chức năng đổi mật khẩu đang phát triển');
+        }
+
+        // Load profile on page load
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
+    </script>
+</body>
+</html>

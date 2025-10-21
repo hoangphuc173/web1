@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+.venv/
+venv/
+.env
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Logs
+logs/
+**/logs/
+*.log
+
+# Node / Frontend cache
+node_modules/
+.dist/
+.build/
+
+# OS
+.DS_Store
+Thumbs.db

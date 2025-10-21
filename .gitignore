@@ -1,0 +1,180 @@
+# Python# Python# Python
+
+__pycache__/
+
+*.py[cod]__pycache__/__pycache__/
+
+*$py.class
+
+*.so*.py[cod]*.py[cod]
+
+.Python
+
+env/*$py.class*$py.class
+
+venv/
+
+ENV/*.so*.so
+
+build/
+
+develop-eggs/.Python.Python
+
+dist/
+
+downloads/*.egg-info/build/
+
+eggs/
+
+.eggs/dist/develop-eggs/
+
+lib/
+
+lib64/build/dist/
+
+parts/
+
+sdist/downloads/
+
+var/
+
+wheels/# Virtual Environmenteggs/
+
+*.egg-info/
+
+.installed.cfg.venv/.eggs/
+
+*.egg
+
+venv/lib/
+
+# Database
+
+*.dbENV/lib64/
+
+*.sqlite
+
+*.sqlite3parts/
+
+data/databases/*.db
+
+!data/databases/.gitkeep# Environment Variablessdist/
+
+
+
+# Logs.envvar/
+
+*.log
+
+data/logs/*.logwheels/
+
+!data/logs/.gitkeep
+
+# Database*.egg-info/
+
+# Cache
+
+data/cache/**.db-journal.installed.cfg
+
+!data/cache/.gitkeep
+
+.cache/*.egg
+
+
+
+# Environment# IDE
+
+.env
+
+.env.local.vscode/# Virtual Environment
+
+config/.env
+
+config/.env.local.idea/.venv/
+
+
+
+# IDE*.swpvenv/
+
+.vscode/
+
+.idea/*.swoENV/
+
+*.swp
+
+*.swoenv/
+
+*~
+
+.DS_Store# OS
+
+
+
+# OS.DS_Store# Environment Variables
+
+Thumbs.db
+
+ehthumbs.dbThumbs.db.env
+
+Desktop.ini
+
+.env.local
+
+# Node (if using)
+
+node_modules/# Database
+
+package-lock.json*.db
+
+yarn.lock*.sqlite
+
+*.sqlite3
+
+# Temporary filesdatabase.db
+
+*.tmp
+
+*.bak# IDE
+
+*.backup.vscode/
+
+~$*.idea/
+
+*.swp
+
+# Test files*.swo
+
+tests/__pycache__/*~
+
+.pytest_cache/
+
+.coverage# OS
+
+htmlcov/.DS_Store
+
+Thumbs.db
+
+# Old structure (to be removed)desktop.ini
+
+web/
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Backup files
+*.backup
+*.bak
+*.old
+*.tmp
+
+# Node modules (if any)
+node_modules/
+
+# OAuth Config (contains secrets)
+oauth_config.py

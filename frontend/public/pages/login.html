@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập / Đăng ký - Full Stack App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/login.css">
+    <!-- CGV Core System -->
+    <script src="../js/core.js"></script>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- Sign Up Form -->
+        <div class="form-container sign-up-container">
+            <form id="registerForm">
+                <h1>Tạo tài khoản</h1>
+                <div class="social-container">
+                    <a href="#" class="social" id="regFacebook" title="Đăng ký với Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social" id="regGoogle" title="Đăng ký với Google">
+                        <i class="fab fa-google"></i>
+                    </a>
+                    <a href="#" class="social" id="regLinkedin" title="Đăng ký với LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+                <span>hoặc sử dụng email để đăng ký</span>
+                <input type="text" id="regName" placeholder="Tên của bạn" required />
+                <input type="email" id="regEmail" placeholder="Email" required />
+                <input type="password" id="regPassword" placeholder="Mật khẩu" required />
+                <button type="submit">Đăng ký</button>
+                <div id="registerMessage" class="message"></div>
+            </form>
+        </div>
+
+        <!-- Sign In Form -->
+        <div class="form-container sign-in-container">
+            <form id="loginForm">
+                <h1>Đăng nhập</h1>
+                <div class="social-container">
+                    <a href="#" class="social" id="loginFacebook" title="Đăng nhập với Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social" id="loginGoogle" title="Đăng nhập với Google">
+                        <i class="fab fa-google"></i>
+                    </a>
+                    <a href="#" class="social" id="loginLinkedin" title="Đăng nhập với LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+                <span>hoặc sử dụng tài khoản của bạn</span>
+                <input type="email" id="loginEmail" placeholder="Email" required />
+                <input type="password" id="loginPassword" placeholder="Mật khẩu" required />
+                <a href="#">Quên mật khẩu?</a>
+                <button type="submit">Đăng nhập</button>
+                <div id="loginMessage" class="message"></div>
+            </form>
+        </div>
+
+        <!-- Overlay -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Chào mừng trở lại!</h1>
+                    <p>Để giữ kết nối với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân của bạn</p>
+                    <button class="ghost" id="signIn">Đăng nhập</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Xin chào, Bạn!</h1>
+                    <p>Nhập thông tin cá nhân của bạn và bắt đầu hành trình với chúng tôi</p>
+                    <button class="ghost" id="signUp">Đăng ký</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Home Button -->
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="streaming.html" style="color: #e50914; text-decoration: none; font-size: 16px; transition: all 0.3s ease; display: inline-block;">
+            <i class="fas fa-home"></i> Quay về trang chủ
+        </a>
+    </div>
+
+    <script src="../js/login.js?v=1005"></script>
+</body>
+</html>

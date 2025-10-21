@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nâng cấp VIP - CGV Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e50914;
+        }
+
+        .logo span {
+            color: #fff;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .pricing-card.popular {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 237, 78, 0.1));
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .plan-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .plan-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .plan-price {
+            font-size: 42px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .plan-price span {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features i {
+            color: #4CAF50;
+            font-size: 18px;
+        }
+
+        .subscribe-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e50914, #ff6b6b);
+            border: none;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .subscribe-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(229, 9, 20, 0.5);
+        }
+
+        .subscribe-btn.popular {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+        }
+
+        .features-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .feature-item h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .feature-item p {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-film"></i>
+            <span>CGV</span> Streaming
+        </div>
+        <button class="back-btn" onclick="window.location.href='streaming.html'">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-crown"></i> Nâng cấp VIP</h1>
+            <p>Trải nghiệm xem phim không giới hạn với các gói VIP cao cấp</p>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="pricing-cards">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+                <i class="fas fa-star plan-icon"></i>
+                <div class="plan-name">Basic</div>
+                <div class="plan-price">Miễn phí<span></span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Xem phim chất lượng HD</li>
+                    <li><i class="fas fa-check"></i> Có quảng cáo</li>
+                    <li><i class="fas fa-check"></i> 1 thiết bị cùng lúc</li>
+                    <li><i class="fas fa-check"></i> Thư viện phim cơ bản</li>
+                </ul>
+                <button class="subscribe-btn" onclick="selectPlan('basic')">Đang sử dụng</button>
+            </div>
+
+            <!-- Premium Plan (Popular) -->
+            <div class="pricing-card popular">
+                <div class="popular-badge">PHỔ BIẾN</div>
+                <i class="fas fa-crown plan-icon" style="color: #ffd700;"></i>
+                <div class="plan-name">Premium</div>
+                <div class="plan-price">99.000đ<span>/tháng</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Xem phim 4K Ultra HD</li>
+                    <li><i class="fas fa-check"></i> Không quảng cáo</li>
+                    <li><i class="fas fa-check"></i> 4 thiết bị cùng lúc</li>
+                    <li><i class="fas fa-check"></i> Toàn bộ thư viện phim</li>
+                    <li><i class="fas fa-check"></i> Xem offline</li>
+                    <li><i class="fas fa-check"></i> Phụ đề đa ngôn ngữ</li>
+                </ul>
+                <button class="subscribe-btn popular" onclick="selectPlan('premium')">Nâng cấp ngay</button>
+            </div>
+
+            <!-- VIP Plan -->
+            <div class="pricing-card">
+                <i class="fas fa-gem plan-icon" style="color: #9c27b0;"></i>
+                <div class="plan-name">VIP Ultimate</div>
+                <div class="plan-price">199.000đ<span>/tháng</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Tất cả tính năng Premium</li>
+                    <li><i class="fas fa-check"></i> Phim độc quyền sớm</li>
+                    <li><i class="fas fa-check"></i> Không giới hạn thiết bị</li>
+                    <li><i class="fas fa-check"></i> Hỗ trợ VIP 24/7</li>
+                    <li><i class="fas fa-check"></i> Tặng voucher xem phim</li>
+                    <li><i class="fas fa-check"></i> Ưu đãi đặc biệt</li>
+                </ul>
+                <button class="subscribe-btn" onclick="selectPlan('vip')">Nâng cấp ngay</button>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h2 style="text-align: center; font-size: 36px; margin-bottom: 20px;">
+                <i class="fas fa-star" style="color: #ffd700;"></i> Tại sao chọn VIP?
+            </h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-film"></i></div>
+                    <h3>Kho phim khổng lồ</h3>
+                    <p>Hàng nghìn bộ phim, phim bộ cập nhật liên tục</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-hd-video"></i></div>
+                    <h3>Chất lượng 4K</h3>
+                    <p>Hình ảnh sắc nét, âm thanh sống động</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-ban"></i></div>
+                    <h3>Không quảng cáo</h3>
+                    <p>Trải nghiệm xem phim không bị gián đoạn</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-download"></i></div>
+                    <h3>Xem offline</h3>
+                    <p>Tải phim về xem mọi lúc mọi nơi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FLASK_API = 'http://localhost:5000';
+
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${FLASK_API}/api/check-auth`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    alert('Vui lòng đăng nhập để nâng cấp VIP!');
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+            }
+        }
+
+        function selectPlan(plan) {
+            if (plan === 'basic') {
+                alert('Bạn đang sử dụng gói Basic miễn phí');
+                return;
+            }
+
+            const planNames = {
+                'premium': 'Premium (99.000đ/tháng)',
+                'vip': 'VIP Ultimate (199.000đ/tháng)'
+            };
+
+            const confirmed = confirm(`Bạn muốn nâng cấp lên gói ${planNames[plan]}?\n\nLưu ý: Đây là chức năng demo, chưa thực hiện thanh toán thực tế.`);
+            
+            if (confirmed) {
+                alert('Chức năng thanh toán đang được phát triển!\n\nTrong phiên bản demo, gói VIP sẽ được kích hoạt ngay.');
+                // TODO: Integrate payment gateway
+                // window.location.href = 'payment.html?plan=' + plan;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>

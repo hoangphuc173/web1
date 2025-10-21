@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt - CGV Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e50914;
+        }
+
+        .logo span {
+            color: #fff;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .settings-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-section h2 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e50914;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .setting-info p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #e50914, #ff6b6b);
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::before {
+            left: 33px;
+        }
+
+        .select-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .select-box option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e50914, #ff6b6b);
+            border: none;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .save-notice {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .save-notice.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-film"></i>
+            <span>CGV</span> Streaming
+        </div>
+        <button class="back-btn" onclick="window.location.href='streaming.html'">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-cog"></i> Cài đặt</h1>
+            <p style="color: rgba(255, 255, 255, 0.7);">Tùy chỉnh trải nghiệm xem phim của bạn</p>
+        </div>
+
+        <!-- Playback Settings -->
+        <div class="settings-section">
+            <h2><i class="fas fa-play-circle"></i> Phát lại</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Tự động phát tập tiếp theo</h3>
+                    <p>Tự động phát tập tiếp theo sau 5 giây</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'autoplay')"></div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Phụ đề mặc định</h3>
+                    <p>Ngôn ngữ phụ đề ưu tiên</p>
+                </div>
+                <select class="select-box" onchange="saveSetting('subtitle', this.value)">
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                    <option value="off">Tắt</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Chất lượng video</h3>
+                    <p>Chất lượng video mặc định</p>
+                </div>
+                <select class="select-box" onchange="saveSetting('quality', this.value)">
+                    <option value="auto">Tự động</option>
+                    <option value="4k">4K Ultra HD</option>
+                    <option value="1080p">Full HD 1080p</option>
+                    <option value="720p">HD 720p</option>
+                    <option value="480p">SD 480p</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Display Settings -->
+        <div class="settings-section">
+            <h2><i class="fas fa-desktop"></i> Hiển thị</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Chế độ tối</h3>
+                    <p>Sử dụng giao diện tối</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'darkMode')"></div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Hiệu ứng động</h3>
+                    <p>Bật/tắt hiệu ứng chuyển động</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'animations')"></div>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="settings-section">
+            <h2><i class="fas fa-bell"></i> Thông báo</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Phim mới</h3>
+                    <p>Thông báo khi có phim mới</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'newMovies')"></div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Email marketing</h3>
+                    <p>Nhận email về ưu đãi và khuyến mãi</p>
+                </div>
+                <div class="toggle-switch" onclick="toggleSetting(this, 'marketing')"></div>
+            </div>
+        </div>
+
+        <!-- Data & Storage -->
+        <div class="settings-section">
+            <h2><i class="fas fa-database"></i> Dữ liệu & Bộ nhớ</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Xóa bộ nhớ cache</h3>
+                    <p>Xóa dữ liệu tạm để giải phóng dung lượng</p>
+                </div>
+                <button class="btn" onclick="clearCache()">
+                    <i class="fas fa-trash-alt"></i> Xóa cache
+                </button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Xóa lịch sử xem</h3>
+                    <p>Xóa toàn bộ lịch sử xem phim</p>
+                </div>
+                <button class="btn btn-danger" onclick="clearHistory()">
+                    <i class="fas fa-history"></i> Xóa lịch sử
+                </button>
+            </div>
+        </div>
+
+        <!-- Save Notice -->
+        <div class="save-notice" id="saveNotice">
+            <i class="fas fa-check-circle"></i>
+            <span>Đã lưu cài đặt thành công!</span>
+        </div>
+    </div>
+
+    <script>
+        const FLASK_API = 'http://localhost:5000';
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
+            
+            // Apply saved settings to toggles
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                const setting = toggle.getAttribute('onclick').match(/'([^']+)'/)[1];
+                if (settings[setting] === false) {
+                    toggle.classList.remove('active');
+                }
+            });
+
+            // Apply saved settings to selects
+            if (settings.subtitle) {
+                document.querySelector('select[onchange*="subtitle"]').value = settings.subtitle;
+            }
+            if (settings.quality) {
+                document.querySelector('select[onchange*="quality"]').value = settings.quality;
+            }
+        }
+
+        function toggleSetting(element, setting) {
+            element.classList.toggle('active');
+            saveSetting(setting, element.classList.contains('active'));
+        }
+
+        function saveSetting(key, value) {
+            const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
+            settings[key] = value;
+            localStorage.setItem('userSettings', JSON.stringify(settings));
+            showSaveNotice();
+        }
+
+        function showSaveNotice() {
+            const notice = document.getElementById('saveNotice');
+            notice.classList.add('show');
+            setTimeout(() => {
+                notice.classList.remove('show');
+            }, 3000);
+        }
+
+        async function clearCache() {
+            if (confirm('Bạn có chắc muốn xóa bộ nhớ cache?')) {
+                localStorage.removeItem('moviesCache');
+                localStorage.removeItem('genresCache');
+                alert('✅ Đã xóa cache thành công!');
+            }
+        }
+
+        async function clearHistory() {
+            if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử xem?\nHành động này không thể hoàn tác!')) {
+                try {
+                    const response = await fetch(`${FLASK_API}/api/watch-history`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        alert('✅ Đã xóa lịch sử xem thành công!');
+                    } else {
+                        alert('❌ Có lỗi xảy ra khi xóa lịch sử');
+                    }
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                    alert('❌ Không thể kết nối đến server');
+                }
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${FLASK_API}/api/check-auth`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    alert('Vui lòng đăng nhập để truy cập cài đặt!');
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadSettings();
+        });
+    </script>
+</body>
+</html>
