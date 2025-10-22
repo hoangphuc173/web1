@@ -8,7 +8,7 @@ import sys
 from dotenv import load_dotenv
 
 # Load environment variables from config/.env
-env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', '.env')
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', '.env')
 load_dotenv(env_path)
 
 # Force MySQL usage
