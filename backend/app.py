@@ -1461,6 +1461,19 @@ def search_movies():
         
         movies = [dict(row) for row in cursor.fetchall()]
         
+        # Fallback: if no FULLTEXT results and query is short, use LIKE with accent-insensitive collation
+        if not movies and len(query.strip()) >= 1:
+            normalized_q = smart_search.normalize_vietnamese(query).strip()
+            cursor.execute('''
+                SELECT * 
+                FROM movies 
+                WHERE status = "active" 
+                  AND LOWER(title) COLLATE utf8mb4_unicode_ci LIKE CONCAT(?, '%')
+                ORDER BY imdb_rating DESC, views DESC
+                LIMIT ?
+            ''', (normalized_q.lower(), limit))
+            movies = [dict(row) for row in cursor.fetchall()]
+        
         # Apply strict prefix priority + custom relevance boost for better ranking
         query_words = smart_search.normalize_vietnamese(query).split()
         for movie in movies:
@@ -1539,6 +1552,27 @@ def search_autocomplete():
 
         cursor.execute(sql, (search_query,))
         results = [dict(row) for row in cursor.fetchall()]
+        
+        # Fallback: if no FULLTEXT results, use LIKE with accent-insensitive collation
+        if not results and len(query.strip()) >= 1:
+            normalized_q = smart_search.normalize_vietnamese(query).strip()
+            sql_fallback = '''
+                SELECT m.*, 
+                       GROUP_CONCAT(DISTINCT g.name) as genres,
+                       m.imdb_rating as rating,
+                       m.views as views
+                FROM movies m
+                LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+                LEFT JOIN genres g ON mg.genre_id = g.id
+                WHERE LOWER(m.title) COLLATE utf8mb4_unicode_ci LIKE CONCAT(?, '%')
+                  AND m.status = "active"
+                GROUP BY m.id
+                ORDER BY m.imdb_rating DESC, m.views DESC
+                LIMIT 200
+            '''
+            cursor.execute(sql_fallback, (normalized_q.lower(),))
+            results = [dict(row) for row in cursor.fetchall()]
+        
         conn.close()
 
         if not results:
