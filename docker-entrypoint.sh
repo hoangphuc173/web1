@@ -10,6 +10,10 @@ FLASK_PID=$!
 echo "⏳ Waiting for Flask to initialize..."
 sleep 15
 
+# Setup FULLTEXT indexes (if not already created)
+echo "🔍 Setting up FULLTEXT indexes for search optimization..."
+python backend/scripts/setup_fulltext_indexes.py
+
 echo "🔄 Starting continuous importer (every 3 minutes)..."
 # Start continuous importer (every 3 minutes)
 python backend/scripts/ophim_import_v3.py --continuous --interval 3 --check-update &
@@ -24,3 +28,4 @@ wait -n
 
 # If any process exits, exit container
 exit $?
+

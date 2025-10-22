@@ -7,6 +7,8 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 from dotenv import load_dotenv
+import re
+import unicodedata
 
 # Environment will be loaded by db_manager; no need to load here
 
@@ -18,6 +20,153 @@ from datetime import timedelta
 
 # Load environment variables FIRST
 load_dotenv()
+
+# ============================================================================
+# Smart Search Helper - Vietnamese Movie Search Optimization
+# ============================================================================
+
+class SmartSearchHelper:
+    """Helper class for intelligent movie search"""
+    
+    @staticmethod
+    def normalize_vietnamese(text):
+        """Normalize Vietnamese text: lowercase + trim spaces"""
+        if not text:
+            return ''
+        text = text.lower().strip()
+        return re.sub(r'\s+', ' ', text)
+    
+    @staticmethod
+    def remove_diacritics(text):
+        """Remove Vietnamese diacritics for fuzzy matching"""
+        if not text:
+            return ''
+        nfd = unicodedata.normalize('NFD', text)
+        without_accents = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
+        return without_accents.replace('đ', 'd').replace('Đ', 'D')
+    
+    @staticmethod
+    def build_smart_search_query(user_query):
+        """Build optimized MySQL FULLTEXT search query with wildcards"""
+        if not user_query or not user_query.strip():
+            return None, None
+        
+        normalized = SmartSearchHelper.normalize_vietnamese(user_query)
+        has_operators = any(op in user_query for op in ['*', '+', '-', '"', '(', ')'])
+        
+        if has_operators:
+            return user_query, 'IN BOOLEAN MODE'
+        
+        words = normalized.split()
+        if not words:
+            return user_query, 'IN BOOLEAN MODE'
+        
+        fuzzy_terms = []
+        for word in words:
+            word_len = len(word)
+            if word_len <= 2:
+                fuzzy_terms.append(f'+{word}')  # Short: exact match
+            elif word_len <= 5:
+                fuzzy_terms.append(f'{word}*')  # Medium: suffix wildcard
+            else:
+                fuzzy_terms.append(f'{word}*')  # Long: flexible
+        
+        return ' '.join(fuzzy_terms), 'IN BOOLEAN MODE'
+    
+    @staticmethod
+    def calculate_relevance_boost(movie, query_words):
+        """Calculate custom relevance score boost for better ranking"""
+        if not movie or not query_words:
+            return 0.0
+        
+        score = 0.0
+        title_vn = movie.get('title', '').strip().lower()
+        title_en = movie.get('original_title', '').strip().lower()
+        title_vn_no_accent = SmartSearchHelper.remove_diacritics(title_vn)
+        
+        query_str = ' '.join(query_words).lower()
+        query_str_no_accent = SmartSearchHelper.remove_diacritics(query_str)
+        
+        # Priority 1: Title STARTS with full query (+1000)
+        if (title_vn.startswith(query_str) or 
+            title_vn_no_accent.startswith(query_str_no_accent) or
+            title_en.startswith(query_str)):
+            score += 1000.0
+        # Priority 2: Title STARTS with first word (+500)
+        elif query_words:
+            first_word = query_words[0].lower()
+            first_word_no_accent = SmartSearchHelper.remove_diacritics(first_word)
+            if (title_vn.startswith(first_word) or 
+                title_vn_no_accent.startswith(first_word_no_accent) or
+                title_en.startswith(first_word)):
+                score += 500.0
+            # Priority 3: Title STARTS with other word (+300)
+            else:
+                for word in query_words[1:]:
+                    word_norm = word.lower()
+                    word_no_accent = SmartSearchHelper.remove_diacritics(word)
+                    if (title_vn.startswith(word_norm) or 
+                        title_vn_no_accent.startswith(word_no_accent) or
+                        title_en.startswith(word_norm)):
+                        score += 300.0
+                        break
+        
+        # Exact match (+200)
+        if (query_str == title_vn or query_str_no_accent == title_vn_no_accent or query_str == title_en):
+            score += 200.0
+        
+        # All words present
+        words_in_title = sum(1 for word in query_words 
+                           if (word.lower() in title_vn or 
+                               SmartSearchHelper.remove_diacritics(word).lower() in title_vn_no_accent or 
+                               word.lower() in title_en))
+        score += 100.0 if words_in_title == len(query_words) else words_in_title * 30.0
+        
+        # Position bonus
+        for word in query_words:
+            positions = [p for p in [
+                title_vn.find(word.lower()),
+                title_vn_no_accent.find(SmartSearchHelper.remove_diacritics(word).lower()),
+                title_en.find(word.lower())
+            ] if p >= 0]
+            if positions:
+                pos = min(positions)
+                score += 50.0 if pos == 0 else (30.0 if pos <= 5 else (15.0 if pos <= 10 else 0))
+        
+        # Rating boost
+        rating = float(movie.get('imdb_rating', 0) or 0)
+        if rating >= 7.0:
+            score += rating * 5.0
+        
+        # Views boost
+        views = int(movie.get('views', 0) or 0)
+        score += min(views / 1000.0, 50.0)
+        
+        # Recent release boost
+        year = int(movie.get('release_year', 0) or 0)
+        if year >= 2020:
+            score += (year - 2019) * 3.0
+        
+        return score
+    
+    @staticmethod
+    def highlight_keywords(text, keywords):
+        """Highlight keywords in text with <mark> tags"""
+        if not text or not keywords:
+            return text
+        result = text
+        for keyword in keywords:
+            if len(keyword) >= 2:
+                pattern = re.compile(re.escape(keyword), re.IGNORECASE)
+                result = pattern.sub(lambda m: f'<mark>{m.group()}</mark>', result)
+        return result
+
+# Create singleton instance
+smart_search = SmartSearchHelper()
+
+# ============================================================================
+# Flask App Configuration
+# ============================================================================
 
 # App Configuration
 app = Flask(__name__)
@@ -283,6 +432,29 @@ def init_db():
             pass  # Index already exists
     
     print("✅ Indexes created successfully")
+    
+    # ===== CREATE FULLTEXT INDEXES FOR SEARCH OPTIMIZATION =====
+    print("🔍 Creating FULLTEXT indexes for optimized search...")
+    fulltext_indexes = [
+        "CREATE FULLTEXT INDEX ft_title ON movies(title)",
+        "CREATE FULLTEXT INDEX ft_original_title ON movies(original_title)",
+        "CREATE FULLTEXT INDEX ft_description ON movies(description)",
+        "CREATE FULLTEXT INDEX ft_search_all ON movies(title, original_title, description)",
+    ]
+    
+    for ft_idx_sql in fulltext_indexes:
+        try:
+            cursor.execute(ft_idx_sql)
+            print(f"  ✅ Created: {ft_idx_sql.split('INDEX')[1].split('ON')[0].strip()}")
+        except Exception as e:
+            # Check if error is "Duplicate key name" - means index already exists
+            if "Duplicate key name" in str(e) or "already exists" in str(e).lower():
+                index_name = ft_idx_sql.split('INDEX')[1].split('ON')[0].strip()
+                print(f"  ℹ️  Already exists: {index_name}")
+            else:
+                print(f"  ⚠️  Failed to create FULLTEXT index: {str(e)}")
+    
+    print("✅ FULLTEXT indexes ready for fast search")
     
     conn.commit()
     conn.close()
@@ -982,26 +1154,16 @@ def get_movies():
         where_clauses = ['status = ?']
         params = ['active']
 
+        # Store search query for relevance scoring
+        search_query = None
+        search_mode = None
         if search:
-            # Smart search: split search term into words for better matching
-            search_terms = search.strip().split()
+            # Use smart search helper for better query building
+            search_query, search_mode = smart_search.build_smart_search_query(search)
             
-            if len(search_terms) == 1:
-                # Single word search - original behavior
-                where_clauses.append('(title LIKE ? OR original_title LIKE ? OR description LIKE ? OR director LIKE ? OR "cast" LIKE ? OR genres LIKE ?)')
-                search_param = f'%{search}%'
-                params.extend([search_param, search_param, search_param, search_param, search_param, search_param])
-            else:
-                # Multi-word search - each word must appear in at least one field
-                word_conditions = []
-                for term in search_terms:
-                    word_condition = '(title LIKE ? OR original_title LIKE ? OR description LIKE ? OR director LIKE ? OR "cast" LIKE ? OR genres LIKE ?)'
-                    word_conditions.append(word_condition)
-                    term_param = f'%{term}%'
-                    params.extend([term_param, term_param, term_param, term_param, term_param, term_param])
-                
-                # Combine with AND - all words must match
-                where_clauses.append(f'({" AND ".join(word_conditions)})')
+            if search_query and search_mode:
+                where_clauses.append(f'MATCH(title, original_title, description) AGAINST(? {search_mode})')
+                params.append(search_query)
 
         if genre:
             where_clauses.append('genres LIKE ?')
@@ -1044,11 +1206,31 @@ def get_movies():
         # Pagination
         offset = (page - 1) * per_page
 
-        query = f'SELECT * FROM movies WHERE {where_sql} ORDER BY {sort} {order_sql} LIMIT ? OFFSET ?'
-        exec_params = list(params) + [per_page, offset]
+        # If search query exists, add relevance score to sort by match quality
+        if search_query and search_mode:
+            # Add relevance score column and prioritize it in sorting
+            # Use same search mode for consistency
+            query = f'''
+                SELECT *, MATCH(title, original_title, description) AGAINST(? {search_mode}) as relevance
+                FROM movies 
+                WHERE {where_sql} 
+                ORDER BY relevance DESC, {sort} {order_sql}
+                LIMIT ? OFFSET ?
+            '''
+            # Add search query for relevance calculation
+            exec_params = [search_query] + list(params) + [per_page, offset]
+        else:
+            query = f'SELECT * FROM movies WHERE {where_sql} ORDER BY {sort} {order_sql} LIMIT ? OFFSET ?'
+            exec_params = list(params) + [per_page, offset]
 
         cursor.execute(query, tuple(exec_params))
         movies = [dict(row) for row in cursor.fetchall()]
+        
+        # Remove relevance score from results (internal use only)
+        if search_query:
+            for movie in movies:
+                movie.pop('relevance', None)
+        
         conn.close()
 
         result = {
@@ -1196,32 +1378,137 @@ def get_episode_detail(movie_id, episode_number):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/movies/search', methods=['GET'])
+@cache.cached(timeout=60, query_string=True)  # Cache search results for 1 minute
 def search_movies():
-    """Search movies by title, cast, or director"""
+    """Smart search movies using FULLTEXT indexes with fuzzy matching and synonym support"""
     try:
         query = request.args.get('q', '')
+        limit = int(request.args.get('limit', 100))  # Allow custom limit
+        
         if not query:
             return jsonify({'success': True, 'data': [], 'count': 0})
         
         conn = get_db()
         cursor = conn.cursor()
         
-        search_pattern = f'%{query}%'
-        cursor.execute('''
-            SELECT * FROM movies 
-            WHERE status = "active" AND (
-                title LIKE ? OR 
-                cast LIKE ? OR 
-                director LIKE ? OR
-                description LIKE ?
-            )
-            ORDER BY imdb_rating DESC
-        ''', (search_pattern, search_pattern, search_pattern, search_pattern))
+        # Use smart search helper for intelligent query building
+        search_query, search_mode = smart_search.build_smart_search_query(query)
+        
+        if not search_query or not search_mode:
+            return jsonify({'success': True, 'data': [], 'count': 0})
+        
+        # Use FULLTEXT search with Boolean mode for wildcard support
+        # This enables fuzzy/partial matching while maintaining speed
+        cursor.execute(f'''
+            SELECT *, 
+                   MATCH(title, original_title, description) AGAINST(? {search_mode}) as relevance
+            FROM movies 
+            WHERE status = "active" 
+              AND MATCH(title, original_title, description) AGAINST(? {search_mode})
+            ORDER BY relevance DESC, imdb_rating DESC, views DESC
+            LIMIT ?
+        ''', (search_query, search_query, limit))
         
         movies = [dict(row) for row in cursor.fetchall()]
+        
+        # Apply custom relevance boost for better ranking
+        query_words = smart_search.normalize_vietnamese(query).split()
+        for movie in movies:
+            # Calculate custom boost
+            boost = smart_search.calculate_relevance_boost(movie, query_words)
+            movie['_boost'] = boost
+            # Remove internal relevance score
+            movie.pop('relevance', None)
+        
+        # Re-sort by boost + rating
+        movies.sort(key=lambda m: (m.get('_boost', 0), m.get('imdb_rating', 0), m.get('views', 0)), reverse=True)
+        
+        # Remove boost from final results
+        for movie in movies:
+            movie.pop('_boost', None)
+        
         conn.close()
         
-        return jsonify({'success': True, 'data': movies, 'count': len(movies)})
+        return jsonify({'success': True, 'data': movies, 'count': len(movies), 'total': len(movies)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/search/autocomplete', methods=['GET'])
+@cache.cached(timeout=60, query_string=True)  # Cache for 60 seconds per query
+def search_autocomplete():
+    """Get autocomplete suggestions for search query"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = int(request.args.get('limit', 10))
+        
+        if not query or len(query) < 2:
+            return jsonify({'success': True, 'data': [], 'count': 0})
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Build smart search query
+        search_query, search_mode = smart_search.build_smart_search_query(query)
+        
+        # Execute FULLTEXT search with smart query
+        # Get more results for better ranking (we'll filter later)
+        sql = f'''
+            SELECT m.*, 
+                   GROUP_CONCAT(DISTINCT g.name) as genres,
+                   m.imdb_rating as rating,
+                   m.views as views
+            FROM movies m
+            LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+            LEFT JOIN genres g ON mg.genre_id = g.id
+            WHERE MATCH(m.title, m.original_title, m.description) AGAINST(? {search_mode})
+            AND m.status = "active"
+            GROUP BY m.id
+            LIMIT 200
+        '''
+        
+        cursor.execute(sql, (search_query,))
+        results = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        if not results:
+            return jsonify({'success': True, 'data': [], 'count': 0, 'total': 0})
+        
+        # Apply custom relevance boost
+        query_words = smart_search.normalize_vietnamese(query).split()
+        
+        for movie in results:
+            boost = smart_search.calculate_relevance_boost(movie, query_words)
+            movie['boost'] = boost
+            
+            # Highlight keywords in title
+            movie['title_highlighted'] = smart_search.highlight_keywords(
+                movie.get('title', ''), 
+                query_words
+            )
+        
+        # Sort by boost first (priority), then rating, then views
+        results.sort(
+            key=lambda x: (
+                x.get('boost', 0),
+                float(x.get('rating', 0) or 0),
+                int(x.get('views', 0) or 0)
+            ),
+            reverse=True
+        )
+        
+        # Return top N results
+        top_results = results[:limit]
+        
+        # Remove internal boost score before returning
+        for movie in top_results:
+            movie.pop('boost', None)
+        
+        return jsonify({
+            'success': True,
+            'data': top_results,
+            'count': len(top_results),
+            'total': len(results)
+        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

@@ -454,6 +454,7 @@ function setupSearch() {
     const suggestionsDiv = document.getElementById('searchSuggestions');
     let searchTimeout = null;
 
+    // Input event for live suggestions
     searchInput.addEventListener('input', (e) => {
         const q = e.target.value || '';
         clearTimeout(searchTimeout);
@@ -461,7 +462,35 @@ function setupSearch() {
             searchTimeout = setTimeout(() => showSearchSuggestions(q), 300);
         } else {
             hideSuggestions();
-            if (!q.trim()) loadMovies();
+            if (!q.trim()) {
+                // Clear search, show all movies
+                document.getElementById('searchResultsSection').style.display = 'none';
+                document.querySelectorAll('.movie-row').forEach(row => { 
+                    if (row.id !== 'searchResultsSection') row.style.display = 'block'; 
+                });
+                loadMovies();
+            }
+        }
+    });
+
+    // Enter key to show all search results
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query.length >= 2) {
+                hideSuggestions();
+                performFullSearch(query);
+            }
+        } else if (e.key === 'Escape') {
+            hideSuggestions();
+        }
+    });
+
+    // Click outside to hide suggestions
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            hideSuggestions();
         }
     });
 }
@@ -472,7 +501,8 @@ async function showSearchSuggestions(query) {
     suggestionsDiv.innerHTML = `<div class="suggestion-loading"><i class="fas fa-spinner fa-spin"></i><p>Đang tìm kiếm...</p></div>`;
     suggestionsDiv.classList.add('show');
     try {
-        const res = await api.get(AppConfig.api.endpoints.movies, { search: query, per_page: 5 });
+        // Use new autocomplete endpoint for better suggestions
+        const res = await api.get('/api/search/autocomplete', { q: query, limit: 5 });
         if (res && res.success && res.data.length) {
             suggestionsDiv.innerHTML = '';
             res.data.forEach(movie => {
@@ -484,11 +514,23 @@ async function showSearchSuggestions(query) {
                 img.alt = movie.title;
                 const info = document.createElement('div');
                 info.className = 'suggestion-info';
-                info.innerHTML = `<div class="suggestion-title">${Utils.sanitizeHTML(movie.title)}</div>`;
+                // Use highlighted title if available, otherwise regular title
+                const displayTitle = movie.title_highlighted || Utils.sanitizeHTML(movie.title);
+                info.innerHTML = `<div class="suggestion-title">${displayTitle}</div>`;
                 item.appendChild(img);
                 item.appendChild(info);
                 suggestionsDiv.appendChild(item);
             });
+            
+            // Add "See all results" button
+            const seeAllBtn = document.createElement('div');
+            seeAllBtn.className = 'suggestion-see-all';
+            seeAllBtn.innerHTML = `<i class="fas fa-search"></i> Xem tất cả kết quả cho "${Utils.sanitizeHTML(query)}" (Nhấn Enter)`;
+            seeAllBtn.onclick = () => {
+                hideSuggestions();
+                performFullSearch(query);
+            };
+            suggestionsDiv.appendChild(seeAllBtn);
         } else {
             suggestionsDiv.innerHTML = `<div class="no-suggestions"><i class="fas fa-search"></i><p>Không tìm thấy kết quả phù hợp</p></div>`;
         }
@@ -506,25 +548,82 @@ function hideSuggestions() {
     setTimeout(() => { suggestionsDiv.innerHTML = ''; }, 200);
 }
 
-async function performSearch(query) {
+// Full search - shows all results when Enter is pressed
+async function performFullSearch(query) {
     if (!query || !query.trim()) {
+        // Clear search, restore all content
+        document.getElementById('searchResultsSection').style.display = 'none';
+        document.querySelectorAll('.movie-row').forEach(row => { 
+            if (row.id !== 'searchResultsSection') row.style.display = 'block'; 
+        });
         loadMovies();
         return;
     }
+    
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const searchResultsDiv = document.getElementById('searchResults');
+    
+    // Show loading
+    searchResultsDiv.innerHTML = `
+        <div class="search-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Đang tìm kiếm "${Utils.sanitizeHTML(query)}"...</p>
+        </div>
+    `;
+    searchResultsSection.style.display = 'block';
+    
+    // Hide other sections
+    document.querySelectorAll('.movie-row').forEach(row => { 
+        if (row.id !== 'searchResultsSection') row.style.display = 'none'; 
+    });
+    
     try {
-        const res = await api.get(AppConfig.api.endpoints.movies, { search: query });
-        if (res && res.success) {
+        // Use /api/movies with search parameter for fuzzy matching
+        const res = await api.get(AppConfig.api.endpoints.movies, { 
+            search: query, 
+            per_page: 200  // Get more results for full search
+        });
+        
+        if (res && res.success && res.data.length) {
+            const total = res.total_count || res.data.length;
+            document.querySelector('#searchResultsSection h2').innerHTML = 
+                `🔍 Kết quả tìm kiếm cho "${Utils.sanitizeHTML(query)}" - ${total} phim`;
             displayMovies(res.data, 'searchResults');
-            document.getElementById('searchResultsSection').style.display = 'block';
-            document.querySelectorAll('.movie-row').forEach(row => { if (row.id !== 'searchResultsSection') row.style.display = 'none'; });
         } else {
-            document.getElementById('searchResults').innerHTML = `<div class="no-search-results"><i class="fas fa-search"></i><p>Không tìm thấy kết quả cho "${Utils.sanitizeHTML(query)}"</p></div>`;
-            document.getElementById('searchResultsSection').style.display = 'block';
+            searchResultsDiv.innerHTML = `
+                <div class="no-search-results">
+                    <i class="fas fa-search"></i>
+                    <p>Không tìm thấy phim nào cho "${Utils.sanitizeHTML(query)}"</p>
+                    <button onclick="clearSearch()" class="btn-primary">Xóa tìm kiếm</button>
+                </div>
+            `;
         }
     } catch (err) {
-        logger.error('performSearch error', err);
+        logger.error('performFullSearch error', err);
+        searchResultsDiv.innerHTML = `
+            <div class="no-search-results">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Lỗi khi tìm kiếm!</p>
+                <button onclick="clearSearch()" class="btn-primary">Thử lại</button>
+            </div>
+        `;
         notifications.error('Lỗi khi tìm kiếm!');
     }
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    document.getElementById('searchResultsSection').style.display = 'none';
+    document.querySelectorAll('.movie-row').forEach(row => { 
+        if (row.id !== 'searchResultsSection') row.style.display = 'block'; 
+    });
+    loadMovies();
+}
+
+async function performSearch(query) {
+    // Alias for backward compatibility
+    return performFullSearch(query);
 }
 
 // ===== MOVIE ACTIONS =====
@@ -813,13 +912,30 @@ let carouselInterval = null;
 
 async function loadHeroBanner() {
     try {
-        // Load more movies to compute trending client-side
-        const res = await api.get(AppConfig.api.endpoints.movies, { per_page: 100 });
+        // Load trending movies for hero banner (top viewed movies)
+        const res = await api.get(AppConfig.api.endpoints.movies, { 
+            per_page: 20,
+            sort: 'views',
+            order: 'desc',
+            _cache_bust: Math.floor(Date.now() / 60000) // Cache bust every minute
+        });
+        
         if (res && res.success && res.data && res.data.length) {
-            // Trending by views desc
-            const trending = [...res.data].sort((a, b) => (b.views || 0) - (a.views || 0));
-            // Take top 8 for hero
-            carouselSlides = trending.slice(0, 8);
+            // Filter only movies with good ratings for better user experience
+            const qualityMovies = res.data.filter(m => {
+                const hasBackdrop = m.backdrop_url || m.poster_url;
+                const hasRating = m.imdb_rating >= 6.0; // Only show well-rated movies
+                return hasBackdrop && hasRating;
+            });
+            
+            // Take top 8 for hero carousel
+            carouselSlides = qualityMovies.slice(0, 8);
+            
+            // Fallback: if not enough quality movies, take any with backdrop
+            if (carouselSlides.length < 5) {
+                carouselSlides = res.data.filter(m => m.backdrop_url || m.poster_url).slice(0, 8);
+            }
+            
             initHeroCarousel();
         }
     } catch (err) {
@@ -854,10 +970,27 @@ function initHeroCarousel() {
         
         slide.style.backgroundImage = `url('${Utils.sanitizeHTML(backdropUrl)}')`;
         
+        // Build movie info badges
+        const rating = movie.imdb_rating ? `<span class="hero-rating"><i class="fas fa-star"></i> ${movie.imdb_rating}</span>` : '';
+        const year = movie.release_year ? `<span class="hero-year">${movie.release_year}</span>` : '';
+        const views = movie.views ? `<span class="hero-views"><i class="fas fa-eye"></i> ${formatViews(movie.views)} lượt xem</span>` : '';
+        const genres = movie.genres ? `<span class="hero-genres">${Utils.sanitizeHTML(movie.genres.split(',').slice(0, 3).join(' • '))}</span>` : '';
+        
+        // Truncate description
+        const description = movie.description || movie.synopsis || 'Không có mô tả';
+        const shortDesc = description.length > 200 ? description.substring(0, 200) + '...' : description;
+        
         slide.innerHTML = `
             <div class="carousel-content">
+                <div class="hero-badge">🔥 TRENDING</div>
                 <h1>${Utils.sanitizeHTML(movie.title || '')}</h1>
-                <p>${Utils.sanitizeHTML(movie.description || movie.synopsis || 'Không có mô tả')}</p>
+                <div class="hero-meta">
+                    ${rating}
+                    ${year}
+                    ${views}
+                </div>
+                ${genres ? `<div class="hero-genres-line">${genres}</div>` : ''}
+                <p class="hero-description">${Utils.sanitizeHTML(shortDesc)}</p>
                 <div class="hero-buttons">
                     <button class="btn btn-play" onclick="goToMovie(${movie.id})">
                         <i class="fas fa-play"></i> Xem ngay
@@ -962,6 +1095,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function goToMovie(id) { window.location.href = `movie-detail.html?id=${id}`; }
+
+// Format view count (e.g., 1500 -> 1.5K)
+function formatViews(views) {
+    if (views >= 1000000) {
+        return (views / 1000000).toFixed(1) + 'M';
+    } else if (views >= 1000) {
+        return (views / 1000).toFixed(1) + 'K';
+    }
+    return views.toString();
+}
 
 // User Menu Actions
 function showProfile() {
