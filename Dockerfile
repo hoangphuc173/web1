@@ -34,9 +34,5 @@ ENV FLASK_ENV=production \
 # Expose port
 EXPOSE 5000
 
-# Start the app (with optional auto-importer)
-# Default: Only Flask app
-CMD ["python", "backend/app.py"]
-
-# To enable auto-importer, use this instead:
-# CMD ["/docker-entrypoint.sh"]
+# Start both Flask app and auto-importer
+CMD ["/docker-entrypoint.sh"]
