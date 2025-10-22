@@ -162,6 +162,53 @@ class SmartSearchHelper:
                 result = pattern.sub(lambda m: f'<mark>{m.group()}</mark>', result)
         return result
 
+    @staticmethod
+    def compute_prefix_flags(movie, query_words):
+        """Compute strict prefix priority flags for sorting.
+        Priority order: full query prefix > first word prefix > any other word prefix.
+        Case- and accent-insensitive, supports Vietnamese.
+        Returns tuple: (full_prefix:int, first_prefix:int, other_prefix:int, matched_count:int)
+        """
+        try:
+            title_vn = (movie.get('title') or '').strip()
+            title_en = (movie.get('original_title') or '').strip()
+        except AttributeError:
+            title_vn = str(movie.get('title', '')).strip()
+            title_en = str(movie.get('original_title', '')).strip()
+
+        t_vn_l = title_vn.lower()
+        t_vn_na = SmartSearchHelper.remove_diacritics(t_vn_l)
+        t_en_l = title_en.lower()
+
+        q_words = [w.lower() for w in (query_words or []) if w]
+        q_words_na = [SmartSearchHelper.remove_diacritics(w) for w in q_words]
+
+        full_q = ' '.join(q_words)
+        full_q_na = ' '.join(q_words_na)
+
+        full_prefix = 1 if (t_vn_l.startswith(full_q) or t_vn_na.startswith(full_q_na) or t_en_l.startswith(full_q)) and full_q else 0
+
+        first_prefix = 0
+        other_prefix = 0
+        if not full_prefix and q_words:
+            fw = q_words[0]
+            fw_na = q_words_na[0]
+            if t_vn_l.startswith(fw) or t_vn_na.startswith(fw_na) or t_en_l.startswith(fw):
+                first_prefix = 1
+            else:
+                for w, wna in zip(q_words[1:], q_words_na[1:]):
+                    if t_vn_l.startswith(w) or t_vn_na.startswith(wna) or t_en_l.startswith(w):
+                        other_prefix = 1
+                        break
+
+        # Count how many query words appear anywhere (diacritics-insensitive)
+        matched_count = 0
+        for w, wna in zip(q_words, q_words_na):
+            if (w in t_vn_l) or (wna in t_vn_na) or (w in t_en_l):
+                matched_count += 1
+
+        return (full_prefix, first_prefix, other_prefix, matched_count)
+
 # Create singleton instance
 smart_search = SmartSearchHelper()
 
@@ -1414,21 +1461,42 @@ def search_movies():
         
         movies = [dict(row) for row in cursor.fetchall()]
         
-        # Apply custom relevance boost for better ranking
+        # Apply strict prefix priority + custom relevance boost for better ranking
         query_words = smart_search.normalize_vietnamese(query).split()
         for movie in movies:
+            # Prefix flags
+            f_full, f_first, f_other, match_cnt = smart_search.compute_prefix_flags(movie, query_words)
+            movie['_p_full'] = f_full
+            movie['_p_first'] = f_first
+            movie['_p_other'] = f_other
+            movie['_match_cnt'] = match_cnt
             # Calculate custom boost
             boost = smart_search.calculate_relevance_boost(movie, query_words)
             movie['_boost'] = boost
             # Remove internal relevance score
             movie.pop('relevance', None)
-        
-        # Re-sort by boost + rating
-        movies.sort(key=lambda m: (m.get('_boost', 0), m.get('imdb_rating', 0), m.get('views', 0)), reverse=True)
+
+        # Re-sort: strict prefix priority first, then match count, then boost, rating, views
+        movies.sort(
+            key=lambda m: (
+                m.get('_p_full', 0),
+                m.get('_p_first', 0),
+                m.get('_p_other', 0),
+                m.get('_match_cnt', 0),
+                float(m.get('_boost', 0) or 0),
+                float(m.get('imdb_rating', 0) or 0),
+                int(m.get('views', 0) or 0)
+            ),
+            reverse=True
+        )
         
         # Remove boost from final results
         for movie in movies:
             movie.pop('_boost', None)
+            movie.pop('_p_full', None)
+            movie.pop('_p_first', None)
+            movie.pop('_p_other', None)
+            movie.pop('_match_cnt', None)
         
         conn.close()
         
@@ -1476,10 +1544,15 @@ def search_autocomplete():
         if not results:
             return jsonify({'success': True, 'data': [], 'count': 0, 'total': 0})
         
-        # Apply custom relevance boost
+        # Apply strict prefix priority + custom relevance boost
         query_words = smart_search.normalize_vietnamese(query).split()
         
         for movie in results:
+            f_full, f_first, f_other, match_cnt = smart_search.compute_prefix_flags(movie, query_words)
+            movie['_p_full'] = f_full
+            movie['_p_first'] = f_first
+            movie['_p_other'] = f_other
+            movie['_match_cnt'] = match_cnt
             boost = smart_search.calculate_relevance_boost(movie, query_words)
             movie['boost'] = boost
             
@@ -1489,10 +1562,14 @@ def search_autocomplete():
                 query_words
             )
         
-        # Sort by boost first (priority), then rating, then views
+        # Sort by prefix priority first, then match count, then boost, rating, views
         results.sort(
             key=lambda x: (
-                x.get('boost', 0),
+                x.get('_p_full', 0),
+                x.get('_p_first', 0),
+                x.get('_p_other', 0),
+                x.get('_match_cnt', 0),
+                float(x.get('boost', 0) or 0),
                 float(x.get('rating', 0) or 0),
                 int(x.get('views', 0) or 0)
             ),
@@ -1505,6 +1582,10 @@ def search_autocomplete():
         # Remove internal boost score before returning
         for movie in top_results:
             movie.pop('boost', None)
+            movie.pop('_p_full', None)
+            movie.pop('_p_first', None)
+            movie.pop('_p_other', None)
+            movie.pop('_match_cnt', None)
         
         return jsonify({
             'success': True,
