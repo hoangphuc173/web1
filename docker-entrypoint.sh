@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Entrypoint script to run Flask app and importer
 
 echo "🚀 Starting Flask app..."

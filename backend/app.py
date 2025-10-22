@@ -9,6 +9,7 @@ import secrets
 from dotenv import load_dotenv
 import re
 import unicodedata
+import os
 
 # Environment will be loaded by db_manager; no need to load here
 
@@ -185,6 +186,15 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HT
 app.config['CACHE_TYPE'] = 'SimpleCache'  # In-memory cache
 app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # 5 minutes
 cache = Cache(app)
+
+# ============================================================================
+# Static paths (absolute) for Linux compatibility
+# ============================================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_PUBLIC_DIR = os.path.normpath(os.path.join(BASE_DIR, '..', 'frontend', 'public'))
+PAGES_DIR = os.path.join(FRONTEND_PUBLIC_DIR, 'pages')
+CSS_DIR = os.path.join(FRONTEND_PUBLIC_DIR, 'css')
+JS_DIR = os.path.join(FRONTEND_PUBLIC_DIR, 'js')
 
 def get_db():
     """Get database connection using db_manager"""
@@ -651,22 +661,22 @@ def seed_initial_data(cursor):
 @app.route('/')
 def home():
     """Home route - serve streaming homepage"""
-    return send_from_directory('../frontend/public/pages', 'streaming.html')
+    return send_from_directory(PAGES_DIR, 'streaming.html')
 
 @app.route('/login.html')
 def login_page():
     """Serve the login/register page"""
-    return send_from_directory('../frontend/public/pages', 'login.html')
+    return send_from_directory(PAGES_DIR, 'login.html')
 
 @app.route('/movie-detail.html')
 def movie_detail_page():
     """Serve the movie detail page"""
-    return send_from_directory('../frontend/public/pages', 'movie-detail.html')
+    return send_from_directory(PAGES_DIR, 'movie-detail.html')
 
 @app.route('/player.html')
 def player_page():
     """Serve the video player page"""
-    return send_from_directory('../frontend/public/pages', 'player.html')
+    return send_from_directory(PAGES_DIR, 'player.html')
 
 @app.route('/favicon.ico')
 def favicon():
@@ -694,35 +704,28 @@ def image_proxy():
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve static files from frontend/public directory"""
+    """Serve static files from frontend/public directory (absolute paths)"""
     # Handle paths with subdirectories (css/, js/, images/, etc.)
     if '/' in filename:
-        # Split path
         parts = filename.split('/')
-        
-        # css/something.css -> ../frontend/public/css/something.css
+
         if parts[0] == 'css':
-            return send_from_directory('../frontend/public/css', '/'.join(parts[1:]))
-        
-        # js/something.js -> ../frontend/public/js/something.js
+            return send_from_directory(CSS_DIR, '/'.join(parts[1:]))
         elif parts[0] == 'js':
-            # Handle js/core/something.js
-            return send_from_directory('../frontend/public/js', '/'.join(parts[1:]))
-        
-        # pages/something.html -> ../frontend/public/pages/something.html
+            return send_from_directory(JS_DIR, '/'.join(parts[1:]))
         elif parts[0] == 'pages':
-            return send_from_directory('../frontend/public/pages', '/'.join(parts[1:]))
-    
-    # Handle direct files
+            return send_from_directory(PAGES_DIR, '/'.join(parts[1:]))
+
+    # Handle direct files by extension
     if filename.endswith('.html'):
-        return send_from_directory('../frontend/public/pages', filename)
+        return send_from_directory(PAGES_DIR, filename)
     elif filename.endswith('.css'):
-        return send_from_directory('../frontend/public/css', filename)
+        return send_from_directory(CSS_DIR, filename)
     elif filename.endswith('.js'):
-        return send_from_directory('../frontend/public/js', filename)
+        return send_from_directory(JS_DIR, filename)
     else:
-        # Try to serve from public root
-        return send_from_directory('../frontend/public', filename)
+        # Fallback to public root
+        return send_from_directory(FRONTEND_PUBLIC_DIR, filename)
 
 @app.route('/api/users', methods=['GET'])
 def get_users():
