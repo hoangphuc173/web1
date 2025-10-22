@@ -1210,9 +1210,9 @@ def get_movies():
         if search:
             # Use smart search helper for better query building
             search_query, search_mode = smart_search.build_smart_search_query(search)
-            
             if search_query and search_mode:
-                where_clauses.append(f'MATCH(title, original_title, description) AGAINST(? {search_mode})')
+                # Title-only FULLTEXT search (case-insensitive by default)
+                where_clauses.append(f'MATCH(title) AGAINST(? {search_mode})')
                 params.append(search_query)
 
         if genre:
@@ -1260,8 +1260,8 @@ def get_movies():
         if search_query and search_mode:
             # Add relevance score column and prioritize it in sorting
             # Use same search mode for consistency
-            query = f'''
-                SELECT *, MATCH(title, original_title, description) AGAINST(? {search_mode}) as relevance
+            query = f'''\
+                SELECT *, MATCH(title) AGAINST(? {search_mode}) as relevance
                 FROM movies 
                 WHERE {where_sql} 
                 ORDER BY relevance DESC, {sort} {order_sql}
@@ -1446,15 +1446,15 @@ def search_movies():
         
         if not search_query or not search_mode:
             return jsonify({'success': True, 'data': [], 'count': 0})
-        
+
         # Use FULLTEXT search with Boolean mode for wildcard support
         # This enables fuzzy/partial matching while maintaining speed
         cursor.execute(f'''
             SELECT *, 
-                   MATCH(title, original_title, description) AGAINST(? {search_mode}) as relevance
+                   MATCH(title) AGAINST(? {search_mode}) as relevance
             FROM movies 
             WHERE status = "active" 
-              AND MATCH(title, original_title, description) AGAINST(? {search_mode})
+              AND MATCH(title) AGAINST(? {search_mode})
             ORDER BY relevance DESC, imdb_rating DESC, views DESC
             LIMIT ?
         ''', (search_query, search_query, limit))
@@ -1511,16 +1511,16 @@ def search_autocomplete():
     try:
         query = request.args.get('q', '').strip()
         limit = int(request.args.get('limit', 10))
-        
+
         if not query or len(query) < 2:
             return jsonify({'success': True, 'data': [], 'count': 0})
-        
+
         conn = get_db()
         cursor = conn.cursor()
-        
+
         # Build smart search query
         search_query, search_mode = smart_search.build_smart_search_query(query)
-        
+
         # Execute FULLTEXT search with smart query
         # Get more results for better ranking (we'll filter later)
         sql = f'''
@@ -1531,22 +1531,22 @@ def search_autocomplete():
             FROM movies m
             LEFT JOIN movie_genres mg ON m.id = mg.movie_id
             LEFT JOIN genres g ON mg.genre_id = g.id
-            WHERE MATCH(m.title, m.original_title, m.description) AGAINST(? {search_mode})
-            AND m.status = "active"
+            WHERE MATCH(m.title) AGAINST(? {search_mode})
+              AND m.status = "active"
             GROUP BY m.id
             LIMIT 200
         '''
-        
+
         cursor.execute(sql, (search_query,))
         results = [dict(row) for row in cursor.fetchall()]
         conn.close()
-        
+
         if not results:
             return jsonify({'success': True, 'data': [], 'count': 0, 'total': 0})
-        
+
         # Apply strict prefix priority + custom relevance boost
         query_words = smart_search.normalize_vietnamese(query).split()
-        
+
         for movie in results:
             f_full, f_first, f_other, match_cnt = smart_search.compute_prefix_flags(movie, query_words)
             movie['_p_full'] = f_full
@@ -1555,13 +1555,13 @@ def search_autocomplete():
             movie['_match_cnt'] = match_cnt
             boost = smart_search.calculate_relevance_boost(movie, query_words)
             movie['boost'] = boost
-            
+
             # Highlight keywords in title
             movie['title_highlighted'] = smart_search.highlight_keywords(
                 movie.get('title', ''), 
                 query_words
             )
-        
+
         # Sort by prefix priority first, then match count, then boost, rating, views
         results.sort(
             key=lambda x: (
@@ -1575,10 +1575,10 @@ def search_autocomplete():
             ),
             reverse=True
         )
-        
+
         # Return top N results
         top_results = results[:limit]
-        
+
         # Remove internal boost score before returning
         for movie in top_results:
             movie.pop('boost', None)
@@ -1586,7 +1586,7 @@ def search_autocomplete():
             movie.pop('_p_first', None)
             movie.pop('_p_other', None)
             movie.pop('_match_cnt', None)
-        
+
         return jsonify({
             'success': True,
             'data': top_results,
