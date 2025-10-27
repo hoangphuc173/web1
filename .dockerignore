@@ -1,31 +1,73 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pytest_cache/
-.venv/
-venv/
-.env
+# Python# Python
 
-# VSCode / IDE
-.vscode/
-.idea/
+__pycache__/__pycache__/
 
-# Git
-.git/
-.gitignore
+*.py[cod]*.pyc
 
-# Logs
-logs/
+*$py.class*.pyo
+
+*.so*.pyd
+
+.Python*.pytest_cache/
+
+*.egg-info/.venv/
+
+dist/venv/
+
+build/.env
+
+*.egg
+
+.venv/# VSCode / IDE
+
+venv/.vscode/
+
+ENV/.idea/
+
+
+
+# IDE# Git
+
+.vscode/.git/
+
+.idea/.gitignore
+
+*.swp
+
+*.swo# Logs
+
+*~logs/
+
 **/logs/
-*.log
 
-# Node / Frontend cache
-node_modules/
-.dist/
-.build/
+# OS*.log
 
-# OS
 .DS_Store
-Thumbs.db
+
+Thumbs.db# Node / Frontend cache
+
+node_modules/
+
+# Application.dist/
+
+*.log.build/
+
+*.sqlite
+
+*.db# OS
+
+cgv_streaming.db.DS_Store
+
+*.sqlThumbs.db
+
+*.dump
+
+# Environment
+.env
+.env.local
+
+# Migration scripts
+migrate*.py
+movies_dump*.sql
+cgv_streaming*.sql
+backup*.sql

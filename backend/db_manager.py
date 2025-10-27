@@ -86,7 +86,8 @@ class DatabaseConnection:
                 database=os.getenv('MYSQL_DATABASE', 'cgv_streaming'),
                 charset='utf8mb4',
                 cursorclass=pymysql.cursors.DictCursor,
-                autocommit=False
+                autocommit=False,
+                init_command="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
             )
             print("[OK] Connected to MySQL database")
         except ImportError:
@@ -181,7 +182,8 @@ def create_mysql_database():
             port=int(os.getenv('MYSQL_PORT', 3306)),
             user=os.getenv('MYSQL_USER', 'root'),
             password=os.getenv('MYSQL_PASSWORD', ''),
-            charset='utf8mb4'
+            charset='utf8mb4',
+            init_command="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
         )
         cursor = connection.cursor()
         
@@ -213,7 +215,8 @@ def drop_mysql_database():
             port=int(os.getenv('MYSQL_PORT', 3306)),
             user=os.getenv('MYSQL_USER', 'root'),
             password=os.getenv('MYSQL_PASSWORD', ''),
-            charset='utf8mb4'
+            charset='utf8mb4',
+            init_command="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
         )
         cursor = connection.cursor()
         

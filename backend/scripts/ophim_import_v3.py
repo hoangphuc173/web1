@@ -63,7 +63,7 @@ class OphimImporter:
                 params['year'] = year
             
             print(f"📡 Fetching movie list (page {page}, genre={genre}, year={year})...")
-            response = self.session.get(url, params=params, timeout=10)
+            response = self.session.get(url, params=params, timeout=30)
             
             if response.status_code == 200:
                 data = response.json()
@@ -91,7 +91,7 @@ class OphimImporter:
             url = f"{OPHIM_API_BASE}/phim/{slug}"
             
             print(f"  📡 Fetching detail for: {slug}")
-            response = self.session.get(url, timeout=10)
+            response = self.session.get(url, timeout=30)
             
             if response.status_code == 200:
                 data = response.json()
@@ -540,15 +540,15 @@ class OphimImporter:
                     print("   All newer movies imported. Stopping here to save time.")
                     break
                 
-                # Rate limiting
-                time.sleep(0.5)
+                # Rate limiting - giảm xuống để import nhanh hơn
+                time.sleep(0.2)
             
             # Break outer loop if early stop triggered
             if check_update_time and consecutive_skipped >= SKIP_THRESHOLD:
                 break
             
             print(f"\n✅ Page {page} completed")
-            time.sleep(1)
+            time.sleep(0.5)
         
         # Summary
         print("\n" + "=" * 70)

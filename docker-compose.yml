@@ -1,13 +1,16 @@
-services:
+﻿services:
   mysql:
     image: mysql:8.0
-    container_name: web1-mysql
+    container_name: cgv-mysql
     restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: cgv_streaming
     volumes:
       - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
       interval: 10s
@@ -16,7 +19,7 @@ services:
 
   backend:
     build: .
-    container_name: web1-backend
+    container_name: cgv-backend
     depends_on:
       mysql:
         condition: service_healthy
@@ -29,10 +32,7 @@ services:
       MYSQL_PASSWORD: root
       MYSQL_DATABASE: cgv_streaming
     ports:
-      - "5001:5000"  # Docker runs on port 5001, internal 5000
-    # Uncomment to develop with live code edits (bind mount)
-    # volumes:
-    #   - .:/app
+      - "5000:5000"  # External port 5000 maps to internal 5000
 
 volumes:
   mysql_data:

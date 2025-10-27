@@ -921,22 +921,19 @@ async function loadHeroBanner() {
         });
         
         if (res && res.success && res.data && res.data.length) {
-            // Filter only movies with good ratings for better user experience
-            const qualityMovies = res.data.filter(m => {
-                const hasBackdrop = m.backdrop_url || m.poster_url;
-                const hasRating = m.imdb_rating >= 6.0; // Only show well-rated movies
-                return hasBackdrop && hasRating;
+            // Filter only movies with backdrop for hero display
+            const trendingMovies = res.data.filter(m => {
+                return m.backdrop_url || m.poster_url; // Must have image
             });
             
-            // Take top 8 for hero carousel
-            carouselSlides = qualityMovies.slice(0, 8);
+            // Take top 8 trending movies for hero carousel
+            carouselSlides = trendingMovies.slice(0, 8);
             
-            // Fallback: if not enough quality movies, take any with backdrop
-            if (carouselSlides.length < 5) {
-                carouselSlides = res.data.filter(m => m.backdrop_url || m.poster_url).slice(0, 8);
+            console.log(`Hero Banner: Loaded ${carouselSlides.length} trending movies`);
+            
+            if (carouselSlides.length > 0) {
+                initHeroCarousel();
             }
-            
-            initHeroCarousel();
         }
     } catch (err) {
         logger.warn('loadHeroBanner failed', err);
